@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "WorkJoy",
+  "version": "0.1.0",
+  "identifier": "com.workjoy.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      { "label": "main", "title": "WorkJoy · 工位能量站", "width": 1120, "height": 760, "minWidth": 900, "minHeight": 650, "resizable": true, "visible": true },
+      { "label": "reader", "title": "WorkJoy · 阅读条", "width": 760, "height": 150, "minWidth": 420, "minHeight": 110, "visible": false, "alwaysOnTop": true, "decorations": false },
+      { "label": "mini", "title": "WorkJoy · 极简模式", "width": 320, "height": 96, "minWidth": 1, "minHeight": 1, "visible": false, "alwaysOnTop": true, "decorations": false, "transparent": true, "resizable": false, "skipTaskbar": true, "shadow": false },
+      { "label": "mini-menu", "title": "WorkJoy · 极简菜单", "width": 210, "height": 310, "minWidth": 1, "minHeight": 1, "visible": false, "alwaysOnTop": true, "decorations": false, "transparent": true, "resizable": false, "skipTaskbar": true, "shadow": false }
+    ],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "windows": { "nsis": { "installMode": "currentUser", "startMenuFolder": "WorkJoy" } }
+  }
+}
