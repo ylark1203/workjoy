@@ -25,6 +25,11 @@ export interface SalarySettings {
   monthlySalary: number;
   salaryType: SalaryType;
   payday: number;
+  socialInsuranceRate: number;
+  housingFundRate: number;
+  otherDeductions: number;
+  estimatedMonthlyTax: number;
+  deductionsEstimated: boolean;
 }
 
 export interface ReminderSettings {
@@ -78,7 +83,16 @@ export interface AppSettings {
 export const defaultSettings: AppSettings = {
   configured: false,
   schedule: { workDays: [1, 2, 3, 4, 5], startTime: '09:00', endTime: '18:00', lunchStart: '12:00', lunchEnd: '13:30' },
-  salary: { monthlySalary: 10000, salaryType: 'afterTax', payday: 15 },
+  salary: {
+    monthlySalary: 10000,
+    salaryType: 'preTax',
+    payday: 15,
+    socialInsuranceRate: 0,
+    housingFundRate: 0,
+    otherDeductions: 0,
+    estimatedMonthlyTax: 0,
+    deductionsEstimated: true
+  },
   reminders: {
     waterEnabled: true,
     waterIntervalMinutes: 45,
@@ -88,7 +102,7 @@ export const defaultSettings: AppSettings = {
     eyeIntervalMinutes: 30
   },
   pomodoro: { workMinutes: 25, breakMinutes: 5 },
-  reader: { fontFamily: 'Microsoft YaHei', fontSize: 18, opacity: 0.94, autoScrollSeconds: 8 },
+  reader: { fontFamily: 'Noto Sans SC Variable', fontSize: 18, opacity: 0.94, autoScrollSeconds: 8 },
   readerState: { paragraphs: [], currentParagraph: 0 },
   theme: 'system',
   launchAtStartup: false,

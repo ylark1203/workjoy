@@ -21,10 +21,22 @@ export function getWorkdaysInMonth(date: Date, workDays: number[] = [1, 2, 3, 4,
   return count;
 }
 
+export function getEstimatedNetMonthlySalary(salary: SalarySettings): number {
+  const monthlySalary = Math.max(0, salary.monthlySalary);
+  if (salary.salaryType === 'afterTax') return monthlySalary;
+  const socialInsuranceRate = Math.min(100, Math.max(0, salary.socialInsuranceRate));
+  const housingFundRate = Math.min(100, Math.max(0, salary.housingFundRate));
+  const socialInsurance = monthlySalary * socialInsuranceRate / 100;
+  const housingFund = monthlySalary * housingFundRate / 100;
+  const otherDeductions = Math.max(0, salary.otherDeductions);
+  const estimatedMonthlyTax = Math.max(0, salary.estimatedMonthlyTax);
+  return Math.max(0, monthlySalary - socialInsurance - housingFund - otherDeductions - estimatedMonthlyTax);
+}
+
 export function getSalaryPerMinute(salary: SalarySettings, schedule: WorkSchedule, date = new Date()): number {
   const workdays = getWorkdaysInMonth(date, schedule.workDays);
   const minutes = getEffectiveWorkMinutes(schedule, date);
-  return workdays && minutes ? salary.monthlySalary / (workdays * minutes) : 0;
+  return workdays && minutes ? getEstimatedNetMonthlySalary(salary) / (workdays * minutes) : 0;
 }
 
 export function getSalarySnapshot(now: Date, salary: SalarySettings, schedule: WorkSchedule): SalarySnapshot {
@@ -35,6 +47,6 @@ export function getSalarySnapshot(now: Date, salary: SalarySettings, schedule: W
   return { perMinute, perSecond, todayIncome: state.workedSeconds * perSecond, workedMinutes: state.workedMinutes, active: state.status === 'working' };
 }
 
-export function formatMoney(value: number): string {
-  return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.max(0, value));
+export function formatMoney(value: number, fractionDigits = 2): string {
+  return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }).format(Math.max(0, value));
 }
