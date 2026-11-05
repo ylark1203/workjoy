@@ -45,9 +45,15 @@ export async function showMiniWindow(): Promise<void> {
   await invoke('show_mini_window');
 }
 
-export async function showMiniMenu(): Promise<void> {
+export type MiniMenuSide = 'left' | 'right';
+
+export function getMiniMenuSide(clientX: number, widgetLeft: number, widgetWidth: number): MiniMenuSide {
+  return clientX < widgetLeft + widgetWidth / 2 ? 'left' : 'right';
+}
+
+export async function showMiniMenu(side: MiniMenuSide = 'right'): Promise<void> {
   if (!isTauri()) return;
-  await invoke('show_mini_menu');
+  await invoke('show_mini_menu', { side });
 }
 
 export async function hideMiniMenu(): Promise<void> {
@@ -68,6 +74,11 @@ export async function openMainWindow(): Promise<void> {
 export async function resizeMiniWindow(width: number, height: number): Promise<void> {
   if (!isTauri()) return;
   await invoke('resize_mini_window', { width: Math.ceil(width), height: Math.ceil(height) });
+}
+
+export async function resizeMiniMenuWindow(width: number, height: number): Promise<void> {
+  if (!isTauri()) return;
+  await invoke('resize_mini_menu_window', { width: Math.ceil(width), height: Math.ceil(height) });
 }
 
 export async function setGlobalShortcut(shortcut: string, onToggle: () => void): Promise<void> {

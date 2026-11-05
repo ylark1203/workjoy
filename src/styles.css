@@ -53,7 +53,8 @@
 html, body, #root { margin: 0; padding: 0; background: transparent !important; }
 body { min-width: 900px; min-height: 100vh; color: var(--text); font-size: 14px; line-height: 1.5; }
 html.mini-mode, body.mini-mode { background: transparent; }
-body.mini-mode { min-width: 0; min-height: 0; width: 100%; height: 100%; overflow: hidden; }
+html.mini-mode, body.mini-mode, body.mini-mode #root { min-width: 0; min-height: 0; width: max-content; height: max-content; }
+body.mini-mode { overflow: hidden; }
 button, input, select { font: inherit; color: inherit; }
 button { border: 0; cursor: pointer; }
 button, input, select { outline: none; }
@@ -76,12 +77,6 @@ nav { display: grid; gap: 5px; }
 .nav-item:hover { color: var(--text); background: var(--surface-2); }
 .nav-item.active { color: var(--accent-text); background: var(--accent); font-weight: 600; }
 .nav-icon { width: 20px; font-size: 19px; text-align: center; }
-.sidebar-bottom { margin-top: auto; display: grid; gap: 14px; }
-.privacy-note { display: flex; gap: 9px; padding: 14px 10px; border-top: 1px solid var(--line); color: var(--muted); }
-.privacy-note > span { color: var(--accent); font-size: 12px; }
-.privacy-note strong, .privacy-note small { display: block; }
-.privacy-note strong { color: var(--text); font-size: 12px; font-weight: 600; }
-.privacy-note small { margin-top: 3px; font-size: 11px; line-height: 1.5; }
 
 .main-content { width: min(1120px, calc(100vw - 226px)); height: 100vh; flex: 1 1 auto; min-width: 0; margin: 0 auto; padding: 34px 54px 62px; overflow-y: auto; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
@@ -89,8 +84,6 @@ nav { display: grid; gap: 5px; }
 .topbar h1 { margin: 7px 0 0; font-size: 30px; font-weight: 600; line-height: 1.3; letter-spacing: -.025em; }
 .topbar-actions { display: flex; gap: 20px; align-items: center; color: var(--muted); }
 .date-label { font: 12px var(--font-numeric); }
-.icon-button { width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 21px; line-height: 20px; transition: border-color .15s, background .15s; }
-.icon-button:hover { border-color: var(--accent); background: var(--surface-2); }
 
 .page-stack { display: grid; gap: 16px; }
 .hero-card, .income-card, .settings-card, .reader-card { position: relative; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
@@ -129,6 +122,7 @@ nav { display: grid; gap: 5px; }
 .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .stat-card { min-height: 143px; padding: 20px 21px; display: flex; flex-direction: column; align-items: flex-start; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); text-align: left; }
 .stat-icon { margin-bottom: 13px; font-size: 18px; }
+.stat-icon-coin { width: 22px; height: 22px; display: grid; place-items: center; border: 2px solid currentColor; border-radius: 50%; background: var(--soft); color: var(--accent-text); box-shadow: inset 0 0 0 2px var(--surface); font: 700 13px/1 'Segoe UI Symbol', Arial, sans-serif; }
 .stat-card strong { margin-top: 7px; font: 600 21px var(--font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
 .stat-card small { margin-top: 7px; color: var(--muted); font-size: 12px; }
 .muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
@@ -194,7 +188,7 @@ nav { display: grid; gap: 5px; }
 .switch.on { background: var(--accent); }
 .switch.on i { transform: translateX(18px); background: var(--accent-text); }
 .range-value { margin-left: auto; color: var(--muted); font-size: 11px; }
-.mini-setting-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+.mini-setting-grid { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 16px; }
 .mini-setting-option { display: inline-flex; align-items: center; gap: 7px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: var(--muted); font-size: 12px; }
 .mini-setting-option span { font-size: 14px; }
 .mini-setting-option.selected { border-color: var(--accent); background: var(--soft); color: var(--text); }
@@ -247,18 +241,18 @@ nav { display: grid; gap: 5px; }
 .confirm-button { min-width: 92px; text-align: left; }
 .confirm-button span { float: right; }
 
-.mini-widget { position: relative; width: max-content; min-width: 0; max-width: 680px; padding: 11px 14px 12px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--surface) 96%, transparent); color: var(--text); box-shadow: var(--shadow-sm); cursor: default; user-select: none; }
+.mini-widget { position: relative; width: max-content; min-width: max-content; max-width: none; padding: 11px 14px 12px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--surface) 96%, transparent); color: var(--text); box-shadow: var(--shadow-sm); cursor: default; user-select: none; }
 .mini-header { display: flex; align-items: center; gap: 6px; color: var(--muted); font: 10px var(--font-numeric); white-space: nowrap; }
 .mini-header small { margin-left: 8px; opacity: .7; font: 10px 'Inter Variable', 'Noto Sans SC Variable', sans-serif; }
-.mini-brand { width: 17px; height: 17px; display: grid; place-items: center; border-radius: 5px; background: var(--accent); color: var(--accent-text); font-size: 10px; font-weight: 700; }
-.mini-items { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 17px; margin-top: 0; padding-top: 14px; }
+.mini-brand { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 5px; background: var(--accent); color: var(--accent-text); font: 700 11px/1 Arial, 'Segoe UI', sans-serif; }
+.mini-items { display: flex; flex-wrap: nowrap; align-items: baseline; gap: 6px 17px; margin-top: 0; padding-top: 14px; }
 .mini-item { position: relative; display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .mini-item > span { color: var(--muted); font-size: 11px; }
 .mini-item strong { font: 600 16px var(--font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
 .mini-income-deltas { position: absolute; left: 50px; bottom: 100%; width: 70px; height: 14px; }
 .mini-income-deltas .income-delta { color: var(--muted); font-size: 10px; }
 .mini-empty { color: var(--muted); font-size: 12px; }
-.mini-menu { width: 210px; height: 310px; min-height: 0; padding: 7px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.mini-menu { width: 210px; height: max-content; min-height: 0; padding: 7px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
 .mini-menu-title { padding: 4px 8px 7px; color: var(--muted); font: 11px var(--font-numeric); }
 .mini-menu button { width: 100%; padding: 7px 8px; border-radius: 7px; background: transparent; color: var(--text); text-align: left; font-size: 12px; white-space: nowrap; }
 .mini-menu button:hover { background: var(--surface-2); }

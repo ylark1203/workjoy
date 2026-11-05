@@ -1,6 +1,13 @@
 import type { SalarySettings, WorkSchedule } from '../types/models';
 import { getEffectiveWorkMinutes, getWorkState } from './timeService';
 
+/**
+ * China's statutory monthly salary conversion basis:
+ * (365 calendar days - 104 rest days) / 12 months = 21.75 days.
+ * Legal public holidays remain paid days and are therefore not subtracted.
+ */
+export const MONTHLY_SALARY_DAYS = 21.75;
+
 export interface SalarySnapshot {
   perMinute: number;
   perSecond: number;
@@ -34,9 +41,10 @@ export function getEstimatedNetMonthlySalary(salary: SalarySettings): number {
 }
 
 export function getSalaryPerMinute(salary: SalarySettings, schedule: WorkSchedule, date = new Date()): number {
-  const workdays = getWorkdaysInMonth(date, schedule.workDays);
-  const minutes = getEffectiveWorkMinutes(schedule, date);
-  return workdays && minutes ? getEstimatedNetMonthlySalary(salary) / (workdays * minutes) : 0;
+  const minutesPerWorkday = getEffectiveWorkMinutes(schedule, date);
+  return minutesPerWorkday > 0
+    ? getEstimatedNetMonthlySalary(salary) / (MONTHLY_SALARY_DAYS * minutesPerWorkday)
+    : 0;
 }
 
 export function getSalarySnapshot(now: Date, salary: SalarySettings, schedule: WorkSchedule): SalarySnapshot {

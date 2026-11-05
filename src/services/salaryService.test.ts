@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getEstimatedNetMonthlySalary, getSalaryPerMinute, getSalarySnapshot, getWorkdaysInMonth } from './salaryService';
+import { getEstimatedNetMonthlySalary, getSalaryPerMinute, getSalarySnapshot, getWorkdaysInMonth, MONTHLY_SALARY_DAYS } from './salaryService';
 import type { SalarySettings, WorkSchedule } from '../types/models';
 
 const schedule: WorkSchedule = { workDays: [1, 2, 3, 4, 5], startTime: '09:00', endTime: '18:00', lunchStart: '12:00', lunchEnd: '13:30' };
@@ -30,7 +30,7 @@ describe('SalaryService', () => {
       estimatedMonthlyTax: 100
     };
     expect(getEstimatedNetMonthlySalary(preTaxSalary)).toBe(7_600);
-    expect(getSalaryPerMinute(preTaxSalary, schedule, date('2026-08-17T10:00:00'))).toBeCloseTo(7_600 / (21 * 450), 10);
+    expect(getSalaryPerMinute(preTaxSalary, schedule, date('2026-08-17T10:00:00'))).toBeCloseTo(7_600 / (MONTHLY_SALARY_DAYS * 450), 10);
   });
 
   it('does not apply deductions again to after-tax salary', () => {
@@ -61,5 +61,11 @@ describe('SalaryService', () => {
     expect(getWorkdaysInMonth(date('2026-08-01T10:00:00'), [0])).toBe(5);
     expect(getSalaryPerMinute(salary, sundaySchedule, date('2026-08-16T10:00:00'))).toBeGreaterThan(0);
     expect(getSalarySnapshot(date('2026-08-16T10:00:00'), salary, sundaySchedule).active).toBe(true);
+  });
+
+  it('uses the fixed statutory monthly salary days instead of the calendar month workday count', () => {
+    const september = date('2026-09-01T10:00:00');
+    expect(getWorkdaysInMonth(september, [1, 2, 3, 4, 5])).toBe(22);
+    expect(getSalaryPerMinute(salary, schedule, september)).toBeCloseTo(10_000 / (MONTHLY_SALARY_DAYS * 450), 10);
   });
 });

@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { defaultSettings } from './types/models';
+import { getMiniMenuSide } from './services/desktopService';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -37,6 +38,11 @@ function getButton(text: string): HTMLButtonElement {
 }
 
 describe('App interactions', () => {
+  it('chooses the mini menu side from the clicked half of the widget', () => {
+    expect(getMiniMenuSide(120, 100, 80)).toBe('left');
+    expect(getMiniMenuSide(160, 100, 80)).toBe('right');
+  });
+
   it('allows setup to finish with unconfirmed deduction data and shows an estimate warning', async () => {
     await renderApp();
     await act(async () => getButton('继续').click());
@@ -52,6 +58,10 @@ describe('App interactions', () => {
     expect(container.textContent).not.toContain('专注番茄');
     expect(container.textContent).not.toContain('A LITTLE REMINDER');
     expect(container.querySelector('.quick-row')).toBeNull();
+    expect(container.querySelector('.icon-button')).toBeNull();
+    expect(container.querySelector('.privacy-note')).toBeNull();
+    expect(container.textContent).not.toContain('收进托盘');
+    expect(container.querySelector('.stat-icon-coin')?.textContent).toBe('¥');
   });
 
   it('updates today income immediately after salary edits without restarting', async () => {

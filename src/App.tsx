@@ -7,7 +7,7 @@ import { defaultSettings, miniContentOptions } from './types/models';
 import { loadSettings, saveSettings } from './services/storageService';
 import { getPaydayCountdown, getWeekendCountdown, getWorkState, formatDuration } from './services/timeService';
 import { formatMoney, getSalarySnapshot } from './services/salaryService';
-import { chooseTextFile, hideMainWindow, hideMiniMenu, notify, openMainWindow, quitApp, resizeMiniWindow, setAutostart, setGlobalShortcut, setMiniClickThrough, showMiniMenu, showMiniWindow, toggleWindow } from './services/desktopService';
+import { chooseTextFile, getMiniMenuSide, hideMainWindow, hideMiniMenu, notify, openMainWindow, quitApp, resizeMiniMenuWindow, resizeMiniWindow, setAutostart, setGlobalShortcut, setMiniClickThrough, showMiniMenu, showMiniWindow, toggleWindow } from './services/desktopService';
 
 type Setter = (next: AppSettings | ((current: AppSettings) => AppSettings)) => void;
 
@@ -116,11 +116,11 @@ function App() {
   if (!settings.configured) return <SetupWizard settings={settings} update={update} />;
 
   return <div className="app-shell">
-    <Sidebar page={page} setPage={setPage} onHide={() => void toggleWindow()} />
+    <Sidebar page={page} setPage={setPage} />
     <main className="main-content">
       <header className="topbar">
         <div><span className="eyebrow">WORKJOY / 工位能量站</span><h1>{page === 'dashboard' ? greeting(now) : page === 'reader' ? '低干扰阅读' : '设置'}</h1></div>
-        <div className="topbar-actions"><span className="date-label">{now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}</span><button className="icon-button" title="隐藏到托盘" onClick={() => void toggleWindow()}>−</button></div>
+        <div className="topbar-actions"><span className="date-label">{now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}</span></div>
       </header>
       {page === 'dashboard' && <Dashboard now={now} settings={settings} />}
       {page === 'reader' && <ReaderPage settings={settings} update={update} />}
@@ -164,6 +164,7 @@ function MiniWindow({ settings, update, now }: { settings: AppSettings; update: 
   const payday = useMemo(() => getPaydayCountdown(now, settings.salary.payday), [now, settings.salary.payday]);
   const countdown = work.status === 'off-day' ? '今天不用上班' : work.status === 'after' ? '今日已完成' : formatDuration(work.status === 'before' ? Math.max(0, (work.endAt.getTime() - now.getTime()) / 1000) : work.remainingSeconds);
   const lastSize = useRef('');
+  const dragCleanup = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     document.documentElement.classList.add('mini-mode');
@@ -203,10 +204,31 @@ function MiniWindow({ settings, update, now }: { settings: AppSettings; update: 
     };
   }, []);
 
-  const startMiniDragging = (event: React.MouseEvent<HTMLDivElement>) => {
+  useEffect(() => () => dragCleanup.current?.(), []);
+
+  const prepareMiniDragging = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.button !== 0 || settings.miniMode.clickThrough || !('__TAURI_INTERNALS__' in window)) return;
-    event.preventDefault();
-    void getCurrentWindow().startDragging().catch(() => undefined);
+    dragCleanup.current?.();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const onMove = (moveEvent: MouseEvent) => {
+      const moved = Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY);
+      if (moved < 4) return;
+      cleanup();
+      moveEvent.preventDefault();
+      // Start only after real movement so a normal double-click can reach onDoubleClick.
+      void getCurrentWindow().startDragging().catch(() => undefined);
+    };
+    const cleanup = () => {
+      window.removeEventListener('mousemove', onMove, true);
+      window.removeEventListener('mouseup', cleanup, true);
+      window.removeEventListener('blur', cleanup);
+      if (dragCleanup.current === cleanup) dragCleanup.current = null;
+    };
+    dragCleanup.current = cleanup;
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', cleanup, true);
+    window.addEventListener('blur', cleanup);
   };
   const itemValue = (key: MiniContentKey): string => {
     if (key === 'offTime') return countdown;
@@ -216,8 +238,13 @@ function MiniWindow({ settings, update, now }: { settings: AppSettings; update: 
     if (key === 'payday') return payday.label;
     return now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   };
-  return <div className="mini-widget" onDoubleClick={() => void openMainWindow()} onContextMenu={(event) => { event.preventDefault(); void showMiniMenu(); }}>
-    <div className="mini-drag-region" onMouseDown={startMiniDragging}>
+  return <div className="mini-widget" onDoubleClick={() => void openMainWindow()} onMouseDown={(event) => {
+    if (event.button !== 2) return;
+    event.preventDefault();
+    const { left, width } = event.currentTarget.getBoundingClientRect();
+    void showMiniMenu(getMiniMenuSide(event.clientX, left, width));
+  }} onContextMenu={(event) => event.preventDefault()}>
+    <div className="mini-drag-region" onMouseDown={prepareMiniDragging}>
       <div className="mini-header"><span className="mini-brand">W</span><span>WorkJoy</span></div>
       <div className="mini-items">{selectedItems.length ? selectedItems.map((key) => <div className="mini-item" key={key}>
         <span>{miniContentOptions.find((option) => option.key === key)?.label}</span>
@@ -230,6 +257,7 @@ function MiniWindow({ settings, update, now }: { settings: AppSettings; update: 
 
 function MiniMenuWindow({ settings, update }: { settings: AppSettings; update: Setter }) {
   const selectedItems = settings.miniMode.items;
+  const lastSize = useRef('');
   useEffect(() => {
     document.documentElement.classList.add('mini-mode');
     document.body.classList.add('mini-mode');
@@ -238,10 +266,35 @@ function MiniMenuWindow({ settings, update }: { settings: AppSettings; update: S
       document.body.classList.remove('mini-mode');
     };
   }, []);
+  useEffect(() => {
+    if (!('__TAURI_INTERNALS__' in window)) return;
+    const element = document.querySelector<HTMLElement>('.mini-menu');
+    if (!element) return;
+    let frame = 0;
+    const resize = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const rect = element.getBoundingClientRect();
+        const width = Math.ceil(rect.width);
+        const height = Math.ceil(rect.height);
+        const size = `${width}x${height}`;
+        if (size === lastSize.current) return;
+        lastSize.current = size;
+        void resizeMiniMenuWindow(width, height);
+      });
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(element);
+    resize();
+    void document.fonts?.ready.then(resize);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
   const updateMiniMode = (miniMode: AppSettings['miniMode']) => {
     const nextSettings = { ...settings, miniMode };
     update(nextSettings);
-    // Persist immediately so a newly opened main/mini window cannot reload stale options.
     void saveSettings(nextSettings).catch(() => undefined);
     if ('__TAURI_INTERNALS__' in window) {
       void Promise.all([
@@ -268,12 +321,11 @@ function MiniMenuWindow({ settings, update }: { settings: AppSettings; update: S
   </div>;
 }
 
-function Sidebar({ page, setPage, onHide }: { page: AppPage; setPage: (page: AppPage) => void; onHide: () => void }) {
+function Sidebar({ page, setPage }: { page: AppPage; setPage: (page: AppPage) => void }) {
   const items: { id: AppPage; icon: string; label: string }[] = [{ id: 'dashboard', icon: '⌂', label: '今日概览' }, { id: 'reader', icon: '▤', label: '阅读条' }, { id: 'settings', icon: '⚙', label: '设置' }];
   return <aside className="sidebar">
     <div className="logo"><div className="brand-mark">W</div><div><strong>WorkJoy</strong><small>工位能量站</small></div></div>
     <nav>{items.map((item) => <button key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => setPage(item.id)}><span className="nav-icon">{item.icon}</span>{item.label}</button>)}</nav>
-    <div className="sidebar-bottom"><div className="privacy-note"><span>●</span><div><strong>本地运行</strong><small>你的数据只在这台电脑上</small></div></div><button className="nav-item" onClick={onHide}><span className="nav-icon">⌄</span>收进托盘</button></div>
   </aside>;
 }
 
@@ -358,10 +410,10 @@ function Dashboard({ now, settings }: { now: Date; settings: AppSettings }) {
     <div className="progress-ring" style={{ '--progress': `${work.progress * 360}deg` } as React.CSSProperties}><div><strong>{Math.round(work.progress * 100)}<small>%</small></strong><span>今日进度</span></div></div>
     <div className="progress-bar"><span style={{ width: `${work.progress * 100}%` }}></span></div><div className="hero-meta"><span>{settings.schedule.startTime} 开始</span><span>{settings.schedule.endTime} 结束</span></div>
   </section><section className="income-card"><div><span className="card-kicker">TIME VALUE / {settings.salary.salaryType === 'preTax' ? settings.salary.deductionsEstimated ? '税后估算 · 待确认' : '税后估算' : '税后'}</span><h3>今天已经赚到</h3><div className="income-total-row"><div className="income-number">{formatMoney(salary.todayIncome)}</div><IncomeDeltaTicker perSecond={salary.perSecond} active={salary.active} tick={incomeClock.tick} /></div><p className="muted">+ {formatMoney(salary.perSecond, 4)} / 秒 <span>· {settings.salary.salaryType === 'preTax' && settings.salary.deductionsEstimated ? '扣款待确认，仅供参考' : '仅为时间折算'}</span></p></div><div className="coin-stack">¥</div></section>
-  <div className="stats-grid"><StatCard icon="☕" title="距离周末" value={weekend.label} sub={weekend.weekend ? '享受今天的慢节奏' : '再坚持一下'} /><StatCard icon="◌" title="距离发工资" value={payday.label} sub={`每月 ${settings.salary.payday} 日`} /></div></div>;
+  <div className="stats-grid"><StatCard icon="☕" title="距离周末" value={weekend.label} sub={weekend.weekend ? '享受今天的慢节奏' : '再坚持一下'} /><StatCard icon="coin" title="距离发工资" value={payday.label} sub={`每月 ${settings.salary.payday} 日`} /></div></div>;
 }
 
-function StatCard({ icon, title, value, sub }: { icon: string; title: string; value: string; sub: string }) { return <section className="stat-card"><span className="stat-icon">{icon}</span><span className="card-kicker">{title}</span><strong>{value}</strong><small>{sub}</small></section>; }
+function StatCard({ icon, title, value, sub }: { icon: string; title: string; value: string; sub: string }) { return <section className="stat-card"><span className={`stat-icon ${icon === 'coin' ? 'stat-icon-coin' : ''}`} aria-hidden="true">{icon === 'coin' ? '¥' : icon}</span><span className="card-kicker">{title}</span><strong>{value}</strong><small>{sub}</small></section>; }
 
 function ReaderPage({ settings, update }: { settings: AppSettings; update: Setter }) {
   const [auto, setAuto] = useState(false);
