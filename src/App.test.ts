@@ -49,6 +49,9 @@ describe('App interactions', () => {
 
     expect(container.textContent).toContain('今日概览');
     expect(container.textContent).toContain('扣款待确认，仅供参考');
+    expect(container.textContent).not.toContain('专注番茄');
+    expect(container.textContent).not.toContain('A LITTLE REMINDER');
+    expect(container.querySelector('.quick-row')).toBeNull();
   });
 
   it('updates today income immediately after salary edits without restarting', async () => {

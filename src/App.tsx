@@ -57,7 +57,7 @@ function App() {
     if (!('__TAURI_INTERNALS__' in window) || windowLabel !== 'main') return;
     let unlisten: (() => void) | undefined;
     void listen<string>('tray-navigate', (event) => {
-      if (event.payload === 'dashboard' || event.payload === 'focus' || event.payload === 'reader' || event.payload === 'settings') setPage(event.payload);
+      if (event.payload === 'dashboard' || event.payload === 'reader' || event.payload === 'settings') setPage(event.payload);
     }).then((dispose) => { unlisten = dispose; });
     return () => unlisten?.();
   }, [windowLabel]);
@@ -119,11 +119,10 @@ function App() {
     <Sidebar page={page} setPage={setPage} onHide={() => void toggleWindow()} />
     <main className="main-content">
       <header className="topbar">
-        <div><span className="eyebrow">WORKJOY / 工位能量站</span><h1>{page === 'dashboard' ? greeting(now) : page === 'focus' ? '专注一下' : page === 'reader' ? '低干扰阅读' : '设置'}</h1></div>
+        <div><span className="eyebrow">WORKJOY / 工位能量站</span><h1>{page === 'dashboard' ? greeting(now) : page === 'reader' ? '低干扰阅读' : '设置'}</h1></div>
         <div className="topbar-actions"><span className="date-label">{now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}</span><button className="icon-button" title="隐藏到托盘" onClick={() => void toggleWindow()}>−</button></div>
       </header>
-      {page === 'dashboard' && <Dashboard now={now} settings={settings} setPage={setPage} />}
-      {page === 'focus' && <FocusPage settings={settings} update={update} />}
+      {page === 'dashboard' && <Dashboard now={now} settings={settings} />}
       {page === 'reader' && <ReaderPage settings={settings} update={update} />}
       {page === 'settings' && <SettingsPage settings={settings} update={update} />}
     </main>
@@ -270,7 +269,7 @@ function MiniMenuWindow({ settings, update }: { settings: AppSettings; update: S
 }
 
 function Sidebar({ page, setPage, onHide }: { page: AppPage; setPage: (page: AppPage) => void; onHide: () => void }) {
-  const items: { id: AppPage; icon: string; label: string }[] = [{ id: 'dashboard', icon: '⌂', label: '今日概览' }, { id: 'focus', icon: '◷', label: '专注番茄' }, { id: 'reader', icon: '▤', label: '阅读条' }, { id: 'settings', icon: '⚙', label: '设置' }];
+  const items: { id: AppPage; icon: string; label: string }[] = [{ id: 'dashboard', icon: '⌂', label: '今日概览' }, { id: 'reader', icon: '▤', label: '阅读条' }, { id: 'settings', icon: '⚙', label: '设置' }];
   return <aside className="sidebar">
     <div className="logo"><div className="brand-mark">W</div><div><strong>WorkJoy</strong><small>工位能量站</small></div></div>
     <nav>{items.map((item) => <button key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => setPage(item.id)}><span className="nav-icon">{item.icon}</span>{item.label}</button>)}</nav>
@@ -346,7 +345,7 @@ function IncomeDeltaTicker({ perSecond, active, tick, className = '' }: { perSec
   </span>;
 }
 
-function Dashboard({ now, settings, setPage }: { now: Date; settings: AppSettings; setPage: (page: AppPage) => void }) {
+function Dashboard({ now, settings }: { now: Date; settings: AppSettings }) {
   const incomeClock = useIncomeClock(now);
   const work = useMemo(() => getWorkState(now, settings.schedule), [now, settings.schedule]);
   const salary = useMemo(() => getSalarySnapshot(incomeClock.time, settings.salary, settings.schedule), [incomeClock.time, settings.salary, settings.schedule]);
@@ -359,41 +358,10 @@ function Dashboard({ now, settings, setPage }: { now: Date; settings: AppSetting
     <div className="progress-ring" style={{ '--progress': `${work.progress * 360}deg` } as React.CSSProperties}><div><strong>{Math.round(work.progress * 100)}<small>%</small></strong><span>今日进度</span></div></div>
     <div className="progress-bar"><span style={{ width: `${work.progress * 100}%` }}></span></div><div className="hero-meta"><span>{settings.schedule.startTime} 开始</span><span>{settings.schedule.endTime} 结束</span></div>
   </section><section className="income-card"><div><span className="card-kicker">TIME VALUE / {settings.salary.salaryType === 'preTax' ? settings.salary.deductionsEstimated ? '税后估算 · 待确认' : '税后估算' : '税后'}</span><h3>今天已经赚到</h3><div className="income-total-row"><div className="income-number">{formatMoney(salary.todayIncome)}</div><IncomeDeltaTicker perSecond={salary.perSecond} active={salary.active} tick={incomeClock.tick} /></div><p className="muted">+ {formatMoney(salary.perSecond, 4)} / 秒 <span>· {settings.salary.salaryType === 'preTax' && settings.salary.deductionsEstimated ? '扣款待确认，仅供参考' : '仅为时间折算'}</span></p></div><div className="coin-stack">¥</div></section>
-  <div className="stats-grid"><StatCard icon="☕" title="距离周末" value={weekend.label} sub={weekend.weekend ? '享受今天的慢节奏' : '再坚持一下'} /><StatCard icon="◌" title="距离发工资" value={payday.label} sub={`每月 ${settings.salary.payday} 日`} /><StatCard icon="🍅" title="专注一下" value="25:00" sub="现在开始一轮" action={() => setPage('focus')} /></div>
-  <section className="quick-row"><div><span className="card-kicker">A LITTLE REMINDER</span><h3>别忘了给身体一点空间</h3><p className="muted">喝口水，站起来，看看窗外。</p></div><div className="quick-actions"><button onClick={() => void notify('WorkJoy', '该喝水啦，给身体一点空间。')}>💧 喝水</button><button onClick={() => void notify('WorkJoy', '让眼睛离开屏幕 20 秒。')}>👀 看远处</button><button onClick={() => setPage('reader')}>▤ 读两段</button></div></section></div>;
+  <div className="stats-grid"><StatCard icon="☕" title="距离周末" value={weekend.label} sub={weekend.weekend ? '享受今天的慢节奏' : '再坚持一下'} /><StatCard icon="◌" title="距离发工资" value={payday.label} sub={`每月 ${settings.salary.payday} 日`} /></div></div>;
 }
 
-function StatCard({ icon, title, value, sub, action }: { icon: string; title: string; value: string; sub: string; action?: () => void }) { return <button className={`stat-card ${action ? 'clickable' : ''}`} onClick={action}><span className="stat-icon">{icon}</span><span className="card-kicker">{title}</span><strong>{value}</strong><small>{sub}</small></button>; }
-
-function FocusPage({ settings, update }: { settings: AppSettings; update: Setter }) {
-  const [mode, setMode] = useState<'work' | 'break'>('work');
-  const [running, setRunning] = useState(false);
-  const [seconds, setSeconds] = useState(settings.pomodoro.workMinutes * 60);
-  const secondsRef = useRef(seconds);
-  useEffect(() => { secondsRef.current = seconds; }, [seconds]);
-  useEffect(() => {
-    if (!running) return;
-    const timer = window.setInterval(() => {
-      if (secondsRef.current > 1) {
-        secondsRef.current -= 1;
-        setSeconds(secondsRef.current);
-        return;
-      }
-      const nextMode = mode === 'work' ? 'break' : 'work';
-      const nextSeconds = (nextMode === 'work' ? settings.pomodoro.workMinutes : settings.pomodoro.breakMinutes) * 60;
-      secondsRef.current = nextSeconds;
-      setMode(nextMode);
-      setRunning(false);
-      setSeconds(nextSeconds);
-      void notify('WorkJoy · 番茄钟', mode === 'work' ? '专注完成，休息一下吧。' : '休息结束，准备开始下一轮。');
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [running, mode, settings.pomodoro]);
-  const total = (mode === 'work' ? settings.pomodoro.workMinutes : settings.pomodoro.breakMinutes) * 60;
-  const pct = 1 - seconds / Math.max(1, total);
-  const reset = () => { setRunning(false); setSeconds((mode === 'work' ? settings.pomodoro.workMinutes : settings.pomodoro.breakMinutes) * 60); };
-  return <div className="focus-layout"><section className="focus-card"><span className="card-kicker">{mode === 'work' ? 'FOCUS MODE' : 'BREAK MODE'}</span><h2>{mode === 'work' ? '专注这一小段' : '休息，什么都不用完成'}</h2><div className="focus-timer" style={{ '--progress': `${pct * 360}deg` } as React.CSSProperties}><strong>{String(Math.floor(seconds / 60)).padStart(2, '0')}:{String(seconds % 60).padStart(2, '0')}</strong><span>{mode === 'work' ? '把注意力放在眼前' : '喝口水，动一动'}</span></div><div className="focus-controls"><button className="primary-button" onClick={() => setRunning(!running)}>{running ? '暂停' : seconds === total ? '开始专注' : '继续'} <span>{running ? 'Ⅱ' : '▶'}</span></button><button className="text-button" onClick={reset}>重置</button></div></section><section className="settings-card"><span className="card-kicker">POMODORO SETTINGS</span><h3>找到你的节奏</h3><label>工作时长<input type="number" min="1" max="120" value={settings.pomodoro.workMinutes} onChange={(e) => { const value = parseNumberInput(e.target.value, 1, 120); if (value === null) return; update((current) => ({ ...current, pomodoro: { ...current.pomodoro, workMinutes: value } })); if (!running && mode === 'work') setSeconds(value * 60); }} /><small>分钟</small></label><label>休息时长<input type="number" min="1" max="60" value={settings.pomodoro.breakMinutes} onChange={(e) => { const value = parseNumberInput(e.target.value, 1, 60); if (value === null) return; update((current) => ({ ...current, pomodoro: { ...current.pomodoro, breakMinutes: value } })); if (!running && mode === 'break') setSeconds(value * 60); }} /><small>分钟</small></label><div className="mode-toggle"><button className={mode === 'work' ? 'active' : ''} onClick={() => { setMode('work'); setRunning(false); setSeconds(settings.pomodoro.workMinutes * 60); }}>工作</button><button className={mode === 'break' ? 'active' : ''} onClick={() => { setMode('break'); setRunning(false); setSeconds(settings.pomodoro.breakMinutes * 60); }}>休息</button></div></section></div>;
-}
+function StatCard({ icon, title, value, sub }: { icon: string; title: string; value: string; sub: string }) { return <section className="stat-card"><span className="stat-icon">{icon}</span><span className="card-kicker">{title}</span><strong>{value}</strong><small>{sub}</small></section>; }
 
 function ReaderPage({ settings, update }: { settings: AppSettings; update: Setter }) {
   const [auto, setAuto] = useState(false);

@@ -2,7 +2,7 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export type SalaryType = 'preTax' | 'afterTax';
 export type CloseBehavior = 'ask' | 'minimize' | 'exit' | 'minimal';
 export type MiniContentKey = 'offTime' | 'income' | 'progress' | 'weekend' | 'payday' | 'clock';
-export type AppPage = 'dashboard' | 'focus' | 'reader' | 'settings';
+export type AppPage = 'dashboard' | 'reader' | 'settings';
 
 export const miniContentOptions: { key: MiniContentKey; label: string }[] = [
   { key: 'offTime', label: '距离下班' },
@@ -41,11 +41,6 @@ export interface ReminderSettings {
   eyeIntervalMinutes: number;
 }
 
-export interface PomodoroSettings {
-  workMinutes: number;
-  breakMinutes: number;
-}
-
 export interface ReaderSettings {
   fontFamily: string;
   fontSize: number;
@@ -66,7 +61,6 @@ export interface AppSettings {
   schedule: WorkSchedule;
   salary: SalarySettings;
   reminders: ReminderSettings;
-  pomodoro: PomodoroSettings;
   reader: ReaderSettings;
   readerState: ReaderState;
   theme: ThemeMode;
@@ -101,7 +95,6 @@ export const defaultSettings: AppSettings = {
     eyeEnabled: true,
     eyeIntervalMinutes: 30
   },
-  pomodoro: { workMinutes: 25, breakMinutes: 5 },
   reader: { fontFamily: 'Noto Sans SC Variable', fontSize: 18, opacity: 0.94, autoScrollSeconds: 8 },
   readerState: { paragraphs: [], currentParagraph: 0 },
   theme: 'system',

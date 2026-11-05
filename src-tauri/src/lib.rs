@@ -178,12 +178,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![show_reader_window, hide_main_window, quit_app, show_mini_window, show_mini_menu, hide_mini_menu, set_mini_click_through, resize_mini_window, open_main_window])
         .setup(|app| {
             let show = tauri::menu::MenuItem::with_id(app, "show", "打开 WorkJoy", true, None::<&str>)?;
-            let focus = tauri::menu::MenuItem::with_id(app, "focus", "开始番茄钟", true, None::<&str>)?;
             let reader = tauri::menu::MenuItem::with_id(app, "reader", "显示阅读条", true, None::<&str>)?;
             let settings = tauri::menu::MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
             let hide = tauri::menu::MenuItem::with_id(app, "hide", "隐藏全部窗口", true, None::<&str>)?;
             let quit = tauri::menu::MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
-            let menu = tauri::menu::Menu::with_items(app, &[&show, &focus, &reader, &settings, &hide, &quit])?;
+            let menu = tauri::menu::Menu::with_items(app, &[&show, &reader, &settings, &hide, &quit])?;
             let tray_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.ico"))
                 .map_err(|error| format!("failed to load tray icon: {error}"))?;
             let tray_result = tauri::tray::TrayIconBuilder::new()
@@ -200,7 +199,7 @@ pub fn run() {
                             let _ = window.set_focus();
                         }
                     }
-                    "focus" | "reader" | "settings" => {
+                    "reader" | "settings" => {
                         if let Some(window) = app.get_webview_window("mini") { let _ = window.hide(); }
                         if let Some(window) = app.get_webview_window("mini-menu") { let _ = window.hide(); }
                         if let Some(window) = app.get_webview_window("main") {

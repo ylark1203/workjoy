@@ -93,9 +93,9 @@ nav { display: grid; gap: 5px; }
 .icon-button:hover { border-color: var(--accent); background: var(--surface-2); }
 
 .page-stack { display: grid; gap: 16px; }
-.hero-card, .income-card, .quick-row, .focus-card, .settings-card, .reader-card { position: relative; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.hero-card, .income-card, .settings-card, .reader-card { position: relative; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
 .hero-card { min-height: 290px; padding: 31px 35px 22px; overflow: hidden; background: linear-gradient(120deg, var(--surface) 68%, var(--soft)); }
-.hero-copy h2, .income-card h3, .focus-card h2, .reader-card h2, .settings-card h2, .settings-card h3 { margin: 9px 0; font-weight: 600; letter-spacing: -.02em; }
+.hero-copy h2, .income-card h3, .reader-card h2, .settings-card h2, .settings-card h3 { margin: 9px 0; font-weight: 600; letter-spacing: -.02em; }
 .hero-copy h2 { font-size: 22px; }
 .hero-copy p { color: var(--muted); font-size: 13px; line-height: 1.7; }
 .big-time { margin: 13px 0 3px; font: 600 52px var(--font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.06em; }
@@ -126,42 +126,29 @@ nav { display: grid; gap: 5px; }
 .income-card p { margin: 0; font-size: 12px; }
 .income-card p span { opacity: .72; }
 .coin-stack { width: 70px; height: 70px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--accent-text) 24%, transparent); border-radius: 50%; font-size: 28px; transform: rotate(8deg); opacity: .68; }
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.stat-card { min-height: 143px; padding: 20px 21px; display: flex; flex-direction: column; align-items: flex-start; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); text-align: left; transition: transform .15s, border-color .15s; }
-.stat-card.clickable:hover { border-color: var(--accent); transform: translateY(-2px); }
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.stat-card { min-height: 143px; padding: 20px 21px; display: flex; flex-direction: column; align-items: flex-start; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); text-align: left; }
 .stat-icon { margin-bottom: 13px; font-size: 18px; }
 .stat-card strong { margin-top: 7px; font: 600 21px var(--font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
 .stat-card small { margin-top: 7px; color: var(--muted); font-size: 12px; }
-.quick-row { padding: 21px 25px; display: flex; justify-content: space-between; align-items: center; }
-.quick-row h3 { margin: 8px 0 3px; font-size: 16px; font-weight: 600; }
 .muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
-.quick-actions { display: flex; gap: 8px; }
-.quick-actions button, .secondary-button { padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); font-size: 12px; transition: border-color .15s, background .15s; }
-.quick-actions button:hover, .secondary-button:hover { border-color: var(--accent); background: var(--soft); }
+.secondary-button { padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); font-size: 12px; transition: border-color .15s, background .15s; }
+.secondary-button:hover { border-color: var(--accent); background: var(--soft); }
 
 .primary-button { padding: 12px 17px; border-radius: 9px; background: var(--accent); color: var(--accent-text); font-size: 13px; font-weight: 600; transition: background .15s, transform .15s; }
 .primary-button:hover { background: var(--accent-hover); transform: translateY(-1px); }
 .primary-button span { margin-left: 22px; }
 .text-button { padding: 13px; background: transparent; color: var(--muted); font-size: 13px; }
 .text-button:hover { color: var(--text); }
-.focus-layout, .reader-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, .75fr); gap: 16px; }
-.focus-card { min-height: 590px; padding: 34px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.focus-card h2 { align-self: flex-start; }
-.focus-timer { position: relative; width: 280px; height: 280px; display: grid; place-items: center; align-content: center; margin: 49px auto 43px; border-radius: 50%; background: conic-gradient(var(--accent) var(--progress), var(--line) 0); }
-.focus-timer::before { content: ''; position: absolute; inset: 9px; border-radius: 50%; background: var(--surface); }
-.focus-timer strong, .focus-timer span { position: relative; }
-.focus-timer strong { font: 600 46px var(--font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
-.focus-timer span { margin-top: 8px; color: var(--muted); font-size: 12px; }
-.focus-controls { display: flex; align-items: center; gap: 19px; }
+.reader-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, .75fr); gap: 16px; }
 .settings-card { padding: 27px; }
 .settings-card h3 { font-size: 18px; }
 .settings-card > label { display: flex; align-items: center; gap: 9px; padding: 18px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
 .settings-card > label input:not([type='range']), .settings-card > label select { width: 116px; margin-left: auto; }
 .settings-card > label small { color: var(--muted); }
-.mode-toggle, .segmented { display: flex; gap: 2px; padding: 3px; border-radius: 9px; background: var(--surface-2); }
-.mode-toggle { margin-top: 28px; }
-.mode-toggle button, .segmented button { padding: 8px 12px; border-radius: 7px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 500; }
-.mode-toggle button.active, .segmented button.active { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow-sm); }
+.segmented { display: flex; gap: 2px; padding: 3px; border-radius: 9px; background: var(--surface-2); }
+.segmented button { padding: 8px 12px; border-radius: 7px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 500; }
+.segmented button.active { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow-sm); }
 
 .reader-card { min-height: 590px; padding: 27px; }
 .reader-toolbar { display: flex; align-items: start; justify-content: space-between; }
@@ -290,8 +277,6 @@ nav { display: grid; gap: 5px; }
 @media (max-width: 1050px) {
   .main-content { padding-left: 32px; padding-right: 32px; }
   .progress-ring { right: 30px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .stats-grid .stat-card:last-child { grid-column: span 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -47,7 +47,6 @@ function mergeSettings(saved?: Partial<AppSettings> | null): AppSettings {
     schedule: { ...defaultSettings.schedule, ...savedSchedule, workDays },
     salary: { ...defaultSettings.salary, ...saved?.salary },
     reminders: { ...defaultSettings.reminders, ...saved?.reminders },
-    pomodoro: { ...defaultSettings.pomodoro, ...saved?.pomodoro },
     reader: { ...defaultSettings.reader, ...saved?.reader },
     readerState: { ...defaultSettings.readerState, ...savedReaderState, paragraphs, currentParagraph },
     miniMode: {
