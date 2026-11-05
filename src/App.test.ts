@@ -77,7 +77,7 @@ describe('App interactions', () => {
     expect(container.querySelector('.income-card p')?.textContent).not.toBe(initialRate);
   });
 
-  it('shows a fading income increment every 200 milliseconds during work', async () => {
+  it('overlaps fading income increments with a new increment every 200 milliseconds', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-08-17T10:00:00+08:00'));
     localStorage.setItem('workjoy-settings', JSON.stringify({
@@ -93,7 +93,9 @@ describe('App interactions', () => {
     const firstDelta = container.querySelector('.income-delta');
     expect(firstDelta?.textContent).toMatch(/^\+¥/);
     await act(async () => vi.advanceTimersByTime(200));
-    const nextDelta = container.querySelector('.income-delta');
+    const deltas = container.querySelectorAll('.income-delta');
+    const nextDelta = deltas[deltas.length - 1];
+    expect(deltas).toHaveLength(2);
     expect(nextDelta?.textContent).toMatch(/^\+¥/);
     expect(nextDelta).not.toBe(firstDelta);
   });

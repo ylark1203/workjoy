@@ -115,11 +115,13 @@ nav { display: grid; gap: 5px; }
 .income-card h3 { font-size: 16px; }
 .income-total-row { display: flex; align-items: baseline; gap: 14px; }
 .income-number { margin: 3px 0; font: 600 42px var(--font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.045em; }
-.income-delta { display: inline-block; color: color-mix(in srgb, var(--accent-text) 72%, transparent); font: 600 15px var(--font-numeric); font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; animation: income-delta-fade 200ms ease-out both; }
+.income-delta-stream { position: relative; display: inline-block; flex: none; width: 82px; height: 20px; }
+.income-delta { position: absolute; left: 0; bottom: 0; display: inline-block; color: color-mix(in srgb, var(--accent-text) 72%, transparent); font: 600 15px var(--font-numeric); font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; animation: income-delta-fade 400ms ease-out both; }
 @keyframes income-delta-fade {
-  0% { opacity: 0; transform: translateY(3px); }
-  22% { opacity: .85; }
-  100% { opacity: 0; transform: translateY(-6px); }
+  0% { opacity: 0; transform: translateY(4px); }
+  18% { opacity: .85; }
+  65% { opacity: .45; }
+  100% { opacity: 0; transform: translateY(-12px); }
 }
 .income-card p { margin: 0; font-size: 12px; }
 .income-card p span { opacity: .72; }
@@ -260,12 +262,14 @@ nav { display: grid; gap: 5px; }
 
 .mini-widget { position: relative; width: max-content; min-width: 0; max-width: 680px; padding: 11px 14px 12px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--surface) 96%, transparent); color: var(--text); box-shadow: var(--shadow-sm); cursor: default; user-select: none; }
 .mini-header { display: flex; align-items: center; gap: 6px; color: var(--muted); font: 10px var(--font-numeric); white-space: nowrap; }
-.mini-header small { margin-left: 8px; opacity: .7; font: 10px 'Segoe UI Variable', 'Segoe UI', sans-serif; }
+.mini-header small { margin-left: 8px; opacity: .7; font: 10px 'Inter Variable', 'Noto Sans SC Variable', sans-serif; }
 .mini-brand { width: 17px; height: 17px; display: grid; place-items: center; border-radius: 5px; background: var(--accent); color: var(--accent-text); font-size: 10px; font-weight: 700; }
-.mini-items { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 17px; margin-top: 8px; }
-.mini-item { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.mini-items { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 17px; margin-top: 0; padding-top: 14px; }
+.mini-item { position: relative; display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .mini-item > span { color: var(--muted); font-size: 11px; }
 .mini-item strong { font: 600 16px var(--font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
+.mini-income-deltas { position: absolute; left: 50px; bottom: 100%; width: 70px; height: 14px; }
+.mini-income-deltas .income-delta { color: var(--muted); font-size: 10px; }
 .mini-empty { color: var(--muted); font-size: 12px; }
 .mini-menu { width: 210px; height: 310px; min-height: 0; padding: 7px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
 .mini-menu-title { padding: 4px 8px 7px; color: var(--muted); font: 11px var(--font-numeric); }
@@ -292,4 +296,5 @@ nav { display: grid; gap: 5px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+  .income-delta-stream .income-delta:not(:last-child) { display: none; }
 }

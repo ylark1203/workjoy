@@ -157,11 +157,12 @@ function ClosePrompt({ onCancel, onClose }: { onCancel: () => void; onClose: (be
 }
 
 function MiniWindow({ settings, update, now }: { settings: AppSettings; update: Setter; now: Date }) {
+  const selectedItems = settings.miniMode.items;
+  const incomeClock = useIncomeClock(now, selectedItems.includes('income'));
   const work = useMemo(() => getWorkState(now, settings.schedule), [now, settings.schedule]);
-  const salary = useMemo(() => getSalarySnapshot(now, settings.salary, settings.schedule), [now, settings.salary, settings.schedule]);
+  const salary = useMemo(() => getSalarySnapshot(incomeClock.time, settings.salary, settings.schedule), [incomeClock.time, settings.salary, settings.schedule]);
   const weekend = useMemo(() => getWeekendCountdown(now, settings.schedule), [now, settings.schedule]);
   const payday = useMemo(() => getPaydayCountdown(now, settings.salary.payday), [now, settings.salary.payday]);
-  const selectedItems = settings.miniMode.items;
   const countdown = work.status === 'off-day' ? '今天不用上班' : work.status === 'after' ? '今日已完成' : formatDuration(work.status === 'before' ? Math.max(0, (work.endAt.getTime() - now.getTime()) / 1000) : work.remainingSeconds);
   const lastSize = useRef('');
 
@@ -219,7 +220,11 @@ function MiniWindow({ settings, update, now }: { settings: AppSettings; update: 
   return <div className="mini-widget" onDoubleClick={() => void openMainWindow()} onContextMenu={(event) => { event.preventDefault(); void showMiniMenu(); }}>
     <div className="mini-drag-region" onMouseDown={startMiniDragging}>
       <div className="mini-header"><span className="mini-brand">W</span><span>WorkJoy</span></div>
-      <div className="mini-items">{selectedItems.length ? selectedItems.map((key) => <div className="mini-item" key={key}><span>{miniContentOptions.find((option) => option.key === key)?.label}</span><strong>{itemValue(key)}</strong></div>) : <div className="mini-empty">右键选择显示内容</div>}</div>
+      <div className="mini-items">{selectedItems.length ? selectedItems.map((key) => <div className="mini-item" key={key}>
+        <span>{miniContentOptions.find((option) => option.key === key)?.label}</span>
+        <strong>{itemValue(key)}</strong>
+        {key === 'income' && <IncomeDeltaTicker perSecond={salary.perSecond} active={salary.active} tick={incomeClock.tick} className="mini-income-deltas" />}
+      </div>) : <div className="mini-empty">右键选择显示内容</div>}</div>
     </div>
   </div>;
 }
@@ -322,15 +327,29 @@ function SalaryDeductionFields({ salary, onChange }: { salary: SalarySettings; o
   </div>;
 }
 
-function Dashboard({ now, settings, setPage }: { now: Date; settings: AppSettings; setPage: (page: AppPage) => void }) {
-  const [incomeClock, setIncomeClock] = useState({ time: now, tick: 0 });
+function useIncomeClock(now: Date, enabled = true) {
+  const [clock, setClock] = useState({ time: now, tick: 0 });
   useEffect(() => {
-    const timer = window.setInterval(() => setIncomeClock((current) => ({ time: new Date(), tick: current.tick + 1 })), 200);
+    if (!enabled) return;
+    setClock({ time: new Date(), tick: 0 });
+    const timer = window.setInterval(() => setClock((current) => ({ time: new Date(), tick: current.tick + 1 })), 200);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [enabled]);
+  return clock;
+}
+
+function IncomeDeltaTicker({ perSecond, active, tick, className = '' }: { perSecond: number; active: boolean; tick: number; className?: string }) {
+  if (!active || tick < 1 || perSecond <= 0) return null;
+  const ticks = tick > 1 ? [tick - 1, tick] : [tick];
+  return <span className={`income-delta-stream ${className}`} aria-hidden="true">
+    {ticks.map((value) => <span key={value} className="income-delta">+{formatMoney(perSecond / 5, 4)}</span>)}
+  </span>;
+}
+
+function Dashboard({ now, settings, setPage }: { now: Date; settings: AppSettings; setPage: (page: AppPage) => void }) {
+  const incomeClock = useIncomeClock(now);
   const work = useMemo(() => getWorkState(now, settings.schedule), [now, settings.schedule]);
   const salary = useMemo(() => getSalarySnapshot(incomeClock.time, settings.salary, settings.schedule), [incomeClock.time, settings.salary, settings.schedule]);
-  const incomeDelta = salary.perSecond / 5;
   const weekend = useMemo(() => getWeekendCountdown(now, settings.schedule), [now, settings.schedule]);
   const payday = useMemo(() => getPaydayCountdown(now, settings.salary.payday), [now, settings.salary.payday]);
   const countdown = work.status === 'before' ? formatDuration(Math.max(0, (work.endAt.getTime() - now.getTime()) / 1000)) : formatDuration(work.remainingSeconds);
@@ -339,7 +358,7 @@ function Dashboard({ now, settings, setPage }: { now: Date; settings: AppSetting
     <div className="hero-copy"><span className="card-kicker">{work.status === 'off-day' ? 'DAY OFF' : 'TODAY AT WORK'}</span><h2>{work.status === 'off-day' ? '今天不用上班' : work.status === 'after' ? '今日工作已完成 🎉' : '距离下班'}</h2>{work.status !== 'off-day' && work.status !== 'after' ? <div className="big-time">{countdown}</div> : <div className="big-time soft">☕</div>}<p>{statusText}</p></div>
     <div className="progress-ring" style={{ '--progress': `${work.progress * 360}deg` } as React.CSSProperties}><div><strong>{Math.round(work.progress * 100)}<small>%</small></strong><span>今日进度</span></div></div>
     <div className="progress-bar"><span style={{ width: `${work.progress * 100}%` }}></span></div><div className="hero-meta"><span>{settings.schedule.startTime} 开始</span><span>{settings.schedule.endTime} 结束</span></div>
-  </section><section className="income-card"><div><span className="card-kicker">TIME VALUE / {settings.salary.salaryType === 'preTax' ? settings.salary.deductionsEstimated ? '税后估算 · 待确认' : '税后估算' : '税后'}</span><h3>今天已经赚到</h3><div className="income-total-row"><div className="income-number">{formatMoney(salary.todayIncome)}</div>{salary.active && incomeClock.tick > 0 && incomeDelta > 0 && <span key={incomeClock.tick} className="income-delta" aria-hidden="true">+{formatMoney(incomeDelta, 4)}</span>}</div><p className="muted">+ {formatMoney(salary.perSecond, 4)} / 秒 <span>· {settings.salary.salaryType === 'preTax' && settings.salary.deductionsEstimated ? '扣款待确认，仅供参考' : '仅为时间折算'}</span></p></div><div className="coin-stack">¥</div></section>
+  </section><section className="income-card"><div><span className="card-kicker">TIME VALUE / {settings.salary.salaryType === 'preTax' ? settings.salary.deductionsEstimated ? '税后估算 · 待确认' : '税后估算' : '税后'}</span><h3>今天已经赚到</h3><div className="income-total-row"><div className="income-number">{formatMoney(salary.todayIncome)}</div><IncomeDeltaTicker perSecond={salary.perSecond} active={salary.active} tick={incomeClock.tick} /></div><p className="muted">+ {formatMoney(salary.perSecond, 4)} / 秒 <span>· {settings.salary.salaryType === 'preTax' && settings.salary.deductionsEstimated ? '扣款待确认，仅供参考' : '仅为时间折算'}</span></p></div><div className="coin-stack">¥</div></section>
   <div className="stats-grid"><StatCard icon="☕" title="距离周末" value={weekend.label} sub={weekend.weekend ? '享受今天的慢节奏' : '再坚持一下'} /><StatCard icon="◌" title="距离发工资" value={payday.label} sub={`每月 ${settings.salary.payday} 日`} /><StatCard icon="🍅" title="专注一下" value="25:00" sub="现在开始一轮" action={() => setPage('focus')} /></div>
   <section className="quick-row"><div><span className="card-kicker">A LITTLE REMINDER</span><h3>别忘了给身体一点空间</h3><p className="muted">喝口水，站起来，看看窗外。</p></div><div className="quick-actions"><button onClick={() => void notify('WorkJoy', '该喝水啦，给身体一点空间。')}>💧 喝水</button><button onClick={() => void notify('WorkJoy', '让眼睛离开屏幕 20 秒。')}>👀 看远处</button><button onClick={() => setPage('reader')}>▤ 读两段</button></div></section></div>;
 }
