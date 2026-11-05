@@ -61,7 +61,7 @@ describe('App interactions', () => {
     expect(container.querySelector('.icon-button')).toBeNull();
     expect(container.querySelector('.privacy-note')).toBeNull();
     expect(container.textContent).not.toContain('收进托盘');
-    expect(container.querySelector('.stat-icon-coin')?.textContent).toBe('¥');
+    expect(container.querySelector('.stat-icon-coin .coin-icon')).not.toBeNull();
   });
 
   it('updates today income immediately after salary edits without restarting', async () => {

@@ -413,7 +413,11 @@ function Dashboard({ now, settings }: { now: Date; settings: AppSettings }) {
   <div className="stats-grid"><StatCard icon="☕" title="距离周末" value={weekend.label} sub={weekend.weekend ? '享受今天的慢节奏' : '再坚持一下'} /><StatCard icon="coin" title="距离发工资" value={payday.label} sub={`每月 ${settings.salary.payday} 日`} /></div></div>;
 }
 
-function StatCard({ icon, title, value, sub }: { icon: string; title: string; value: string; sub: string }) { return <section className="stat-card"><span className={`stat-icon ${icon === 'coin' ? 'stat-icon-coin' : ''}`} aria-hidden="true">{icon === 'coin' ? '¥' : icon}</span><span className="card-kicker">{title}</span><strong>{value}</strong><small>{sub}</small></section>; }
+function StatCard({ icon, title, value, sub }: { icon: string; title: string; value: string; sub: string }) { return <section className="stat-card"><span className={`stat-icon ${icon === 'coin' ? 'stat-icon-coin' : ''}`} aria-hidden="true">{icon === 'coin' ? <CoinIcon /> : icon}</span><span className="card-kicker">{title}</span><strong>{value}</strong><small>{sub}</small></section>; }
+
+function CoinIcon() {
+  return <svg className="coin-icon" viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="8.5" /><path d="M9.5 8.5h3.1a2 2 0 0 1 0 4H11a2 2 0 0 0 0 4h3.5M12 6.8v10.4" /></svg>;
+}
 
 function ReaderPage({ settings, update }: { settings: AppSettings; update: Setter }) {
   const [auto, setAuto] = useState(false);
